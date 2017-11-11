@@ -2,23 +2,23 @@
 
 let canvas = document.querySelector('#c');
 let ctx = canvas.getContext('2d');
-let width = 500;
-let height = 500;
-let padding = 20;
+let padding = 100;
 let spirals = [];
 let currentMode = null;
 let running = false;
 let gui = new dat.gui.GUI();
 
+let CANVAS_WIDTH = 500;
+let CANVAS_HEIGHT = 500;
 const MAX_WIDTH = 10;
 const COLORS = [];// 77'#77C4D3', '#333745', '#DAEDE2', '#EA2E49', '#F6F792'];
 
 function init(mode) {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
-  ctx.translate(width / 2, height / 2);
+  CANVAS_WIDTH = window.innerWidth;
+  CANVAS_HEIGHT = window.innerHeight;
+  canvas.width = CANVAS_WIDTH;
+  canvas.height = CANVAS_HEIGHT;
+  ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   clear();
 
   // add "random" colors
@@ -26,21 +26,23 @@ function init(mode) {
     COLORS.push(getRandomColor());
   }
 
-  currentMode = mode || Object.assign({}, MODES.SPIRAL_MODE);
+  currentMode = mode || Object.assign({}, MODES.MULTI_SPIRAL_MODE);
   addStartSpirals();
   addEventListeners();
   setupDatGui();
 
   start();
+
+  window.setInterval(reset, 5000);
 }
 
 function adjustCanvasSize() {
-  ctx.translate(width / -2, height / -2);
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
-  ctx.translate(width / 2, height / 2);
+  ctx.translate(CANVAS_WIDTH / -2, CANVAS_HEIGHT / -2);
+  CANVAS_WIDTH = window.innerWidth;
+  CANVAS_HEIGHT = window.innerHeight;
+  canvas.width = CANVAS_WIDTH;
+  canvas.height = CANVAS_HEIGHT;
+  ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   reset();
 }
 
@@ -50,10 +52,10 @@ function start() {
 }
 
 function clear() {
-  ctx.translate(width / -2, height / -2);
+  ctx.translate(CANVAS_WIDTH / -2, CANVAS_HEIGHT / -2);
   ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, width, height);
-  ctx.translate(width / 2, height / 2);
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 }
 
 function reset() {
@@ -74,7 +76,7 @@ function addStartSpirals() {
     if (currentMode.centered) {
       start = new Vector(0, 0);
     } else {
-      start = getRandomPoint(width, height, padding);
+      start = getRandomPoint(CANVAS_WIDTH, CANVAS_HEIGHT, padding);
     }
     addPlacedSpiral(start, vec, null, null, col, width);
   }
@@ -126,7 +128,7 @@ function addPlacedSpiral(pos, dir, rot, scale, color, width, stayOnCurve, splitR
 }
 
 function addRandomSpiral(size) {
-  let start = getRandomPoint(width, height, padding);
+  let start = getRandomPoint(CANVAS_WIDTH, CANVAS_HEIGHT, padding);
   let vec = getRandomVector(size);
   let col = COLORS[Math.floor(Math.random() * COLORS.length)];
   let width = Math.max(1, Math.ceil(Math.random() * MAX_WIDTH));

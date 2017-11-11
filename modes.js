@@ -9,6 +9,16 @@ const MODES = {
     centered: true,
     count: 1
   },
+  MULTI_SPIRAL_MODE: {
+    rotationFactor: 0.158,
+    scaleFactor: 0.98,
+    color: '#ffffff',
+    width: 3.3,
+    stayOnCurve: 0.995,
+    splitRatio: 0.987,
+    centered: false,
+    count: 42
+  },
   ROOT_MODE: {
     rotationFactor: 0.1,
     scaleFactor: 0.999,
