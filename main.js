@@ -1,60 +1,54 @@
+'use strict';
+
 let canvas = document.querySelector('#c');
 let ctx = canvas.getContext('2d');
 let width = 500;
 let height = 500;
+let padding = 20;
+let spirals = [];
+let currentMode = null;
+let running = false;
+let gui = new dat.gui.GUI();
 
 const MIN_LENGTH = 0.1;
-const MAX_WIDTH = 4;
-const PADDING = 100;
-const COLORS = ['#77C4D3', '#333745', '#DAEDE2', '#EA2E49', '#F6F792'];
-//console.log(Math.random());
-let spirals = [];
+const MAX_WIDTH = 10;
+const MIN_WIDTH = 0.1;
+const COLORS = [];// 77'#77C4D3', '#333745', '#DAEDE2', '#EA2E49', '#F6F792'];
 
-function tick() {
-  spirals.forEach((spiral, i) => {
-    spiral.previousDirection = spiral.direction;
-    if (spiral.splits() && spirals.length < 300) {
-      addPlacedSpiral(spiral.position, spiral.direction.scale(0.5), -spiral.rotationFactor, null, spiral.color, spiral.width, 1);
-    }
-    spiral.update();
-  });
-  window.requestAnimationFrame(tick);
+function init(mode) {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+  ctx.translate(width / 2, height / 2);
+  clear();
+
+  // add "random" colors
+  for (let i = 0; i < 7; i++) {
+    COLORS.push(getRandomColor());
+  }
+
+  currentMode = mode || Object.assign({}, SPIRAL_MODE);
+  addStartSpirals();
+  addEventListeners();
+  setupDatGui();
+
+  start();
 }
 
-function addPlacedSpiral(pos, dir, rot, scale, color, width, stayOnCurve) {
-  let options = {
-    rotationFactor: rot || 0.08,
-    scaleFactor: scale || 0.985,
-    color: color || 'white',
-    width: width || 1,
-    stayOnCurve: stayOnCurve || 1
-  };
-  spirals.push(new Spiral(pos, dir, options));
+function adjustCanvasSize() {
+  ctx.translate(width / -2, height / -2);
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+  ctx.translate(width / 2, height / 2);
+  reset();
 }
 
-function addRandomSpiral() {
-  let start = randomPoint();
-  let vec = randomVector(25);
-  let col = COLORS[Math.floor(Math.random() * COLORS.length)];
-  let width = Math.max(1, Math.ceil(Math.random() * MAX_WIDTH));
-  addPlacedSpiral(start, vec, null, null, col, width);
-}
-
-function randomPoint() {
-  let max_x = width - PADDING;
-  let max_y = height - PADDING;
-  let min_x = PADDING;
-  let min_y = PADDING; 
-  let x = Math.max(min_x, Math.round(Math.random() * max_x)) - max_x / 2;
-  let y = Math.max(min_y, Math.round(Math.random() * max_y)) - max_y / 2;
-  return new Vector(x, y);
-}
-
-function randomVector(max) {
-  max = max || 10;
-  let x = Math.round(Math.random() * max) - max / 2;
-  let y = Math.round(Math.random() * max) - max / 2;
-  return new Vector(x, y);
+function start() {
+  running = true;
+  update();
 }
 
 function clear() {
@@ -64,94 +58,109 @@ function clear() {
   ctx.translate(width / 2, height / 2);
 }
 
-function init() {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
-  ctx.translate(width / 2, height / 2);
+function reset() {
   clear();
-  
+  spirals = [];
   addStartSpirals();
-  
-  tick();
-  
-  window.setInterval(() => {
-    clear();
-    spirals = [];
-    addStartSpirals();
-  }, 7000);
 }
 
-function addStartSpirals(num = 7) {
-  for (let i = 0; i < num; i++) {
-    addRandomSpiral();
+function addStartSpirals() {
+  let vec;
+  let col;
+  let width;
+  let start;
+  for (let i = 0; i < currentMode.count; i++) {
+    vec = getRandomVector(20);
+    col = COLORS[Math.floor(Math.random() * COLORS.length)];
+    width = Math.max(1, Math.ceil(Math.random() * currentMode.width));
+    if (currentMode.centered) {
+      start = new Vector(0, 0);
+    } else {
+      start = getRandomPoint(width, height, padding);
+    }
+    addPlacedSpiral(start, vec, null, null, col, width);
   }
 }
 
-function Vector(x, y) {
-  this.x = x;
-  this.y = y;
-}
-Vector.prototype.rotate = function(angle) {
-  let rot_x = this.x * Math.cos(angle) - this.y * Math.sin(angle);
-  let rot_y = this.x * Math.sin(angle) + this.y * Math.cos(angle);
-  return new Vector(rot_x, rot_y);
-};
-Vector.prototype.scale = function(fac) {
-  return new Vector(this.x * fac, this.y * fac);
-};
-Vector.prototype.length = function() {
-  return Math.sqrt(this.x * this.x + this.y * this.y);
-};
-Vector.prototype.sub = function(vec) {
-  return new Vector(this.x - vec.x, this.y - vec.y);
-};
-Vector.prototype.dot = function(vec) {
-  return this.x * vec.x + this.y * vec.y;
-};
-Vector.prototype.angle = function(vec) {
-  let z = this.dot(vec);
-  let n = this.length() * vec.length();
-  let cos = z / n;
-  return Math.acos(cos);
-};
-
-function Spiral(pos, dir, options){
-  options = options || {};
-  this.position = pos;
-  this.direction = dir;
-  this.previousDirection = null;
-  this.rotationFactor = options.rotationFactor;
-  this.scaleFactor = options.scaleFactor;
-  this.color = options.color;
-  this.width = options.width;
-  this.stayOnCurve = options.stayOnCurve;
-}
-Spiral.prototype.update = function() {
-  if ( this.direction.length() < MIN_LENGTH ) {
+function update() {
+  if (!running) {
     return false;
   }
-  ctx.strokeStyle = this.color;
-  ctx.lineWidth = this.width; //; * this.direction.length() / 8;
-  let x = this.position.x + this.direction.x;
-  let y = this.position.y + this.direction.y;
-  ctx.beginPath();
-  ctx.moveTo(this.position.x, this.position.y);
-  ctx.lineTo(x, y);
-  ctx.stroke();
+  spirals.forEach((spiral, i) => {
+    spiral.previousDirection = spiral.direction;
+    if (spiral.splits() && spirals.length < 300) {
+      addPlacedSpiral(spiral.position, spiral.direction.scale(0.5), -spiral.rotationFactor, spiral.scaleFactor, spiral.color, spiral.width);
+    }
+    spiral.update();
+  });
+  window.requestAnimationFrame(update);
+}
 
-  // turn randomly
-  if (Math.random() > this.stayOnCurve) {
-    this.rotationFactor = -this.rotationFactor;
+function addEventListeners() {
+  document.addEventListener('keyup', ev => {
+    if (ev.keyCode === 82) {
+      reset();
+    }
+    if (ev.keyCode === 80) {
+      toggle();
+    }
+  });
+  window.addEventListener('resize', adjustCanvasSize);
+}
+
+function toggle() {
+  running = !running;
+  if ( running) {
+    start();
   }
+}
 
-  this.position = new Vector(x, y);
-  this.direction = this.direction.rotate(this.rotationFactor).scale(this.scaleFactor);
-  return true;
-};
-Spiral.prototype.splits = function() {
-  return Math.random() > 0.98;
+function addPlacedSpiral(pos, dir, rot, scale, color, width, stayOnCurve, splitRatio) {
+  let mode = {
+    rotationFactor: rot || currentMode.rotationFactor,
+    scaleFactor: scale || currentMode.scaleFactor,
+    color: color || currentMode.color,
+    width: width || currentMode.width,
+    stayOnCurve: stayOnCurve || currentMode.stayOnCurve,
+    splitRatio: splitRatio || currentMode.splitRatio
+  };
+  spirals.push(new Spiral(ctx, pos, dir, mode));
+}
+
+function addRandomSpiral(size) {
+  let start = getRandomPoint(width, height, padding);
+  let vec = getRandomVector(size);
+  let col = COLORS[Math.floor(Math.random() * COLORS.length)];
+  let width = Math.max(1, Math.ceil(Math.random() * MAX_WIDTH));
+  addPlacedSpiral(start, vec, null, null, col, width);
+}
+
+function setupDatGui() {
+
+  let obj = {
+    reset: reset,
+    toggle: toggle,
+    padding: padding
+  };
+
+  let rotationFactorController = gui.add(currentMode, 'rotationFactor', 0, 0.3, 0.002);
+  let scaleFactorController = gui.add(currentMode, 'scaleFactor', 0.95, 1.05, 0.001);
+  let widthController = gui.add(currentMode, 'width', MIN_WIDTH * 2, MAX_WIDTH);
+  let stayOnCurveController = gui.add(currentMode, 'stayOnCurve', 0.8, 1, 0.001).name('prob of not turning');
+  let splitRatioController = gui.add(currentMode, 'splitRatio', 0.8, 1, 0.001).name('prob of not splitting');
+  let centeredController = gui.add(currentMode, 'centered');
+  let countController = gui.add(currentMode, 'count', 1, 10, 1);
+  let paddingController = gui.add(obj, 'padding', 0, 200).name('unused');
+  let resetController = gui.add(obj, 'reset').name('[R] Reset');
+  let toggleController = gui.add(obj, 'toggle').name('[P] Pause/Play');
+  rotationFactorController.onChange(reset);
+  scaleFactorController.onChange(reset);
+  widthController.onChange(reset);
+  stayOnCurveController.onChange(reset);
+  splitRatioController.onChange(reset);
+  centeredController.onChange(reset);
+  countController.onChange(reset);
+  paddingController.onChange(reset);
 }
 
 init();
