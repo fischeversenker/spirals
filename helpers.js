@@ -1,13 +1,13 @@
 function getRandomColor() {
   let min_thresh = {
-    r: 70,
-    g: 90,
-    b: 113
+    r: 61,
+    g: 100,
+    b: 140
   };
   let max_thresh = {
-    r: 119,
-    g: 255,
-    b: 200
+    r: 90,
+    g: 140,
+    b: 170
   };
   let r = Math.round(Math.max(min_thresh.r, Math.min(max_thresh.r, Math.random() * 255))).toString(16),
     g = Math.round(Math.max(min_thresh.g, Math.min(max_thresh.g, Math.random() * 255))).toString(16),
@@ -17,8 +17,8 @@ function getRandomColor() {
 
 function getRandomVector(max) {
   max = max || 10;
-  let x = Math.round(Math.random() * max) - max / 2;
-  let y = Math.round(Math.random() * max) - max / 2;
+  let x = Math.max(3, Math.round(Math.random() * max)) - max / 2;
+  let y = Math.max(3, Math.round(Math.random() * max)) - max / 2;
   return new Vector(x, y);
 }
 
