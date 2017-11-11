@@ -10,9 +10,7 @@ let currentMode = null;
 let running = false;
 let gui = new dat.gui.GUI();
 
-const MIN_LENGTH = 0.1;
 const MAX_WIDTH = 10;
-const MIN_WIDTH = 0.1;
 const COLORS = [];// 77'#77C4D3', '#333745', '#DAEDE2', '#EA2E49', '#F6F792'];
 
 function init(mode) {
@@ -28,7 +26,7 @@ function init(mode) {
     COLORS.push(getRandomColor());
   }
 
-  currentMode = mode || Object.assign({}, SPIRAL_MODE);
+  currentMode = mode || Object.assign({}, MODES.SPIRAL_MODE);
   addStartSpirals();
   addEventListeners();
   setupDatGui();
@@ -89,7 +87,7 @@ function update() {
   spirals.forEach((spiral, i) => {
     spiral.previousDirection = spiral.direction;
     if (spiral.splits() && spirals.length < 300) {
-      addPlacedSpiral(spiral.position, spiral.direction.scale(0.5), -spiral.rotationFactor, spiral.scaleFactor, spiral.color, spiral.width);
+      addPlacedSpiral(spiral.position, spiral.direction.scale(0.8), -spiral.rotationFactor, spiral.scaleFactor, spiral.color, spiral.width);
     }
     spiral.update();
   });
@@ -145,7 +143,7 @@ function setupDatGui() {
 
   let rotationFactorController = gui.add(currentMode, 'rotationFactor', 0, 0.3, 0.002);
   let scaleFactorController = gui.add(currentMode, 'scaleFactor', 0.95, 1.05, 0.001);
-  let widthController = gui.add(currentMode, 'width', MIN_WIDTH * 2, MAX_WIDTH);
+  let widthController = gui.add(currentMode, 'width', MIN_WIDTH * 2, MAX_WIDTH).name('maxWidth');
   let stayOnCurveController = gui.add(currentMode, 'stayOnCurve', 0.8, 1, 0.001).name('prob of not turning');
   let splitRatioController = gui.add(currentMode, 'splitRatio', 0.8, 1, 0.001).name('prob of not splitting');
   let centeredController = gui.add(currentMode, 'centered');

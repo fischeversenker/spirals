@@ -1,3 +1,6 @@
+const MIN_LENGTH = 0.1;
+const MIN_WIDTH = 0.05;
+
 class Spiral {
 
   constructor(ctx, pos, dir, options) {
@@ -28,7 +31,7 @@ class Spiral {
     this.ctx.stroke();
 
     // turn randomly
-    if (Math.random() > this.stayOnCurve) {
+    if (this.turns()) {
       this.rotationFactor = -this.rotationFactor;
     }
 
@@ -38,6 +41,10 @@ class Spiral {
   }
 
   splits() {
-    return Math.random() > this.splitRatio;
+    return Math.random() > this.splitRatio - this.direction.length() / 1000;
+  }
+
+  turns() {
+    return Math.random() > this.stayOnCurve - this.direction.length() / 1000;
   }
 }

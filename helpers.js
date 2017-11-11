@@ -1,11 +1,11 @@
 function getRandomColor() {
   let min_thresh = {
-    r: 112,
-    g: 2,
-    b: 33
+    r: 70,
+    g: 90,
+    b: 113
   };
   let max_thresh = {
-    r: 199,
+    r: 119,
     g: 255,
     b: 200
   };
