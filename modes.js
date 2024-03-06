@@ -8,7 +8,7 @@ const MODES = {
     splitRatio: 0.993,
     centered: true,
     count: 1,
-    flowers: false
+    flowers: false,
   },
   SPIRAL_MODE: {
     rotationFactor: 0.05,
@@ -19,7 +19,7 @@ const MODES = {
     splitRatio: 0.987,
     centered: true,
     count: 1,
-    flowers: false
+    flowers: false,
   },
   MULTI_SPIRAL_MODE: {
     rotationFactor: 0.158,
@@ -30,18 +30,18 @@ const MODES = {
     splitRatio: 0.987,
     centered: false,
     count: 42,
-    flowers: false
+    flowers: false,
   },
   ROOT_MODE: {
-    rotationFactor: 0.1,
-    scaleFactor: 0.999,
+    rotationFactor: 0.08,
+    scaleFactor: 0.99,
     color: '#ffffff',
-    width: 0.3,
-    stayOnCurve: 0.3,
-    splitRatio: 0.3,
-    centered: false,
-    count: 13,
-    flowers: false
+    width: 10,
+    stayOnCurve: 0.839,
+    splitRatio: 0.989,
+    centered: true,
+    count: 2,
+    flowers: true,
   },
   FEATHER_MODE: {
     rotationFactor: 0.02,
@@ -52,6 +52,6 @@ const MODES = {
     splitRatio: 0.987,
     centered: true,
     count: 1,
-    flowers: true
-  }
-}
+    flowers: true,
+  },
+};

@@ -26,7 +26,7 @@ function init(mode) {
     COLORS.push(getRandomColor());
   }
 
-  currentMode = mode || 'FEATHER_MODE';
+  currentMode = mode || 'ROOT_MODE';
   addStartSpirals();
   addEventListeners();
   setupDatGui();
@@ -92,7 +92,14 @@ function update() {
   spirals.forEach((spiral, i) => {
     spiral.previousDirection = spiral.direction;
     if (spiral.splits() && spirals.length < 300) {
-      addPlacedSpiral(spiral.position, spiral.direction.scale(0.8), -spiral.rotationFactor, spiral.scaleFactor, spiral.color, spiral.width);
+      addPlacedSpiral(
+        spiral.position,
+        spiral.direction.scale(0.8),
+        -spiral.rotationFactor,
+        spiral.scaleFactor,
+        spiral.color,
+        spiral.width
+      );
     }
     spiral.update();
   });
@@ -100,11 +107,11 @@ function update() {
 }
 
 function addEventListeners() {
-  document.addEventListener('keyup', ev => {
-    if (ev.keyCode === 82) {
+  document.addEventListener('keyup', (ev) => {
+    if (ev.key === 'r') {
       reset();
     }
-    if (ev.keyCode === 80) {
+    if (ev.key === 'p') {
       toggle();
     }
   });
@@ -113,12 +120,22 @@ function addEventListeners() {
 
 function toggle() {
   running = !running;
-  if ( running) {
+  if (running) {
     start();
   }
 }
 
-function addPlacedSpiral(pos, dir, rot, scale, color, width, stayOnCurve, splitRatio, flowers) {
+function addPlacedSpiral(
+  pos,
+  dir,
+  rot,
+  scale,
+  color,
+  width,
+  stayOnCurve,
+  splitRatio,
+  flowers
+) {
   let mode = {
     rotationFactor: rot || MODES[currentMode].rotationFactor,
     scaleFactor: scale || MODES[currentMode].scaleFactor,
@@ -126,7 +143,7 @@ function addPlacedSpiral(pos, dir, rot, scale, color, width, stayOnCurve, splitR
     width: width || MODES[currentMode].width,
     stayOnCurve: stayOnCurve || MODES[currentMode].stayOnCurve,
     splitRatio: splitRatio || MODES[currentMode].splitRatio,
-    flowers: flowers || MODES[currentMode].flowers
+    flowers: flowers || MODES[currentMode].flowers,
   };
   spirals.push(new Spiral(ctx, pos, dir, mode));
 }
@@ -140,30 +157,51 @@ function addRandomSpiral(size) {
 }
 
 function setupDatGui() {
-
   let obj = {
     reset: reset,
     toggle: toggle,
     padding: padding,
-    mode: currentMode
+    mode: currentMode,
   };
 
-  let modes = ['FINE_SPIRAL_MODE', 'SPIRAL_MODE', 'MULTI_SPIRAL_MODE', 'ROOT_MODE', 'FEATHER_MODE'];
+  let modes = [
+    'FINE_SPIRAL_MODE',
+    'SPIRAL_MODE',
+    'MULTI_SPIRAL_MODE',
+    'ROOT_MODE',
+    'FEATHER_MODE',
+  ];
 
   let modeController = gui.add(obj, 'mode', modes);
-  let rotationFactorController = gui.add(MODES[currentMode], 'rotationFactor', 0, 0.3, 0.002).listen();
-  let scaleFactorController = gui.add(MODES[currentMode], 'scaleFactor', 0.95, 1.05, 0.001).listen();
-  let widthController = gui.add(MODES[currentMode], 'width', MIN_WIDTH * 2, MAX_WIDTH).name('maxWidth').listen();
-  let stayOnCurveController = gui.add(MODES[currentMode], 'stayOnCurve', 0.8, 1, 0.001).name('prob of not turning').listen();
-  let splitRatioController = gui.add(MODES[currentMode], 'splitRatio', 0.8, 1, 0.001).name('prob of not splitting').listen();
+  let rotationFactorController = gui
+    .add(MODES[currentMode], 'rotationFactor', 0, 0.3, 0.002)
+    .listen();
+  let scaleFactorController = gui
+    .add(MODES[currentMode], 'scaleFactor', 0.95, 1.05, 0.001)
+    .listen();
+  let widthController = gui
+    .add(MODES[currentMode], 'width', MIN_WIDTH * 2, MAX_WIDTH)
+    .name('maxWidth')
+    .listen();
+  let stayOnCurveController = gui
+    .add(MODES[currentMode], 'stayOnCurve', 0.8, 1, 0.001)
+    .name('prob of not turning')
+    .listen();
+  let splitRatioController = gui
+    .add(MODES[currentMode], 'splitRatio', 0.7, 1, 0.001)
+    .name('prob of not splitting')
+    .listen();
   let centeredController = gui.add(MODES[currentMode], 'centered').listen();
   let countController = gui.add(MODES[currentMode], 'count', 1, 10, 1).listen();
-  let paddingController = gui.add(obj, 'padding', 0, 200).name('unused').listen();
+  let paddingController = gui
+    .add(obj, 'padding', 0, 200)
+    .name('unused')
+    .listen();
   let resetController = gui.add(obj, 'reset').name('[R] Reset');
   let toggleController = gui.add(obj, 'toggle').name('[P] Pause/Play');
   modeController.onChange(() => {
     currentMode = obj.mode;
-    reset();
+    gui.reset();
   });
   rotationFactorController.onChange(reset);
   scaleFactorController.onChange(reset);
