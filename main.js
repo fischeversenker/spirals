@@ -26,7 +26,7 @@ function init(mode) {
     COLORS.push(getRandomColor());
   }
 
-  currentMode = mode || 'ROOT_MODE';
+  currentMode = mode || 'SPIRAL_MODE';
   addStartSpirals();
   addEventListeners();
   setupDatGui();

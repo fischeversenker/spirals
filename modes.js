@@ -36,7 +36,7 @@ const MODES = {
     rotationFactor: 0.08,
     scaleFactor: 0.99,
     color: '#ffffff',
-    width: 10,
+    width: 7,
     stayOnCurve: 0.839,
     splitRatio: 0.989,
     centered: true,
@@ -52,6 +52,6 @@ const MODES = {
     splitRatio: 0.987,
     centered: true,
     count: 1,
-    flowers: true,
+    flowers: false,
   },
 };
