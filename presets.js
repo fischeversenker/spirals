@@ -1,5 +1,5 @@
-const MODES = {
-  FINE_SPIRAL_MODE: {
+export const PRESETS = {
+  FINE_SPIRAL: {
     rotationFactor: 0.1,
     scaleFactor: 0.98,
     color: '#ffffff',
@@ -10,7 +10,7 @@ const MODES = {
     count: 1,
     flowers: false,
   },
-  SPIRAL_MODE: {
+  SPIRAL: {
     rotationFactor: 0.05,
     scaleFactor: 0.99,
     color: '#ffffff',
@@ -21,7 +21,7 @@ const MODES = {
     count: 1,
     flowers: false,
   },
-  MULTI_SPIRAL_MODE: {
+  MULTI_SPIRAL: {
     rotationFactor: 0.158,
     scaleFactor: 0.98,
     color: '#ffffff',
@@ -32,7 +32,7 @@ const MODES = {
     count: 42,
     flowers: false,
   },
-  ROOT_MODE: {
+  ROOT: {
     rotationFactor: 0.08,
     scaleFactor: 0.99,
     color: '#ffffff',
@@ -43,7 +43,7 @@ const MODES = {
     count: 2,
     flowers: true,
   },
-  FEATHER_MODE: {
+  FEATHER: {
     rotationFactor: 0.02,
     scaleFactor: 0.986,
     color: '#ffffff',

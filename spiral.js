@@ -1,9 +1,11 @@
-const MIN_LENGTH = 0.1;
-const MIN_WIDTH = 0.4;
-const FLOWER_DURATION = 400;
+import { Vector } from './vector.js';
 
-class Spiral {
+export const MIN_LENGTH = 0.1;
+export const MIN_WIDTH = 0.4;
+export const MAX_WIDTH = 10;
+export const FLOWER_DURATION = 400;
 
+export class Spiral {
   constructor(ctx, pos, dir, options) {
     options = options || {};
     this.ctx = ctx;
@@ -42,7 +44,10 @@ class Spiral {
       this.dead = true;
     } else {
       this.ctx.strokeStyle = this.color;
-      this.ctx.lineWidth = Math.max(this.width * this.direction.length() / 8, MIN_WIDTH);
+      this.ctx.lineWidth = Math.max(
+        (this.width * this.direction.length()) / 8,
+        MIN_WIDTH
+      );
       let x = this.position.x + this.direction.x;
       let y = this.position.y + this.direction.y;
       this.ctx.beginPath();
@@ -56,13 +61,16 @@ class Spiral {
       }
 
       this.position = new Vector(x, y);
-      this.direction = this.direction.rotate(this.rotationFactor).scale(this.scaleFactor);
+      this.direction = this.direction
+        .rotate(this.rotationFactor)
+        .scale(this.scaleFactor);
     }
     return true;
   }
 
   updateFlower() {
-    const radius = (Date.now() - this.flowerStarted) / FLOWER_DURATION * this.flowerRadius;
+    const radius =
+      ((Date.now() - this.flowerStarted) / FLOWER_DURATION) * this.flowerRadius;
     this.ctx.fillStyle = this.color; // 'rgba(150, 150, 255, 0.5)';
     this.ctx.beginPath();
     this.ctx.arc(this.position.x, this.position.y, radius, 0, 360);

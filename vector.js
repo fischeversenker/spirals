@@ -1,5 +1,4 @@
-class Vector {
-
+export class Vector {
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -10,7 +9,7 @@ class Vector {
     let rot_y = this.x * Math.sin(angle) + this.y * Math.cos(angle);
     return new Vector(rot_x, rot_y);
   }
-  
+
   scale(fac) {
     return new Vector(this.x * fac, this.y * fac);
   }
