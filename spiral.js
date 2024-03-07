@@ -19,11 +19,14 @@ export class Spiral {
     this.stayOnCurve = options.stayOnCurve;
     this.splitRatio = options.splitRatio;
     this.flowers = options.flowers;
+    this.root = options.root;
     this.flowerIsFullSize = false;
     this.flowerRadius = Math.random() * 4;
     this.shouldFlower = Math.random() > 0.1;
     this.flowerStarted = 0;
     this.dead = false;
+    this.hasReplacement = false;
+    this.children = [];
   }
 
   update() {
@@ -79,6 +82,10 @@ export class Spiral {
     if (Date.now() > this.flowerStarted + FLOWER_DURATION) {
       this.flowerIsFullSize = true;
     }
+  }
+
+  addChild(spiral) {
+    this.children.push(spiral);
   }
 
   splits() {

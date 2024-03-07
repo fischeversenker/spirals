@@ -7,7 +7,6 @@ const canvas = document.querySelector('#c');
 const ctx = canvas.getContext('2d');
 const padding = 100;
 let spirals = [];
-let currentMode = null;
 let running = false;
 const gui = new dat.gui.GUI();
 
@@ -27,7 +26,7 @@ const configuration = {
   flowers: false,
 };
 
-function init(preset) {
+function init() {
   CANVAS_WIDTH = window.innerWidth;
   CANVAS_HEIGHT = window.innerHeight;
   canvas.width = CANVAS_WIDTH;
@@ -40,7 +39,6 @@ function init(preset) {
     COLORS.push(getRandomColor());
   }
 
-  currentMode = preset || PRESETS[0];
   addStartSpirals();
   addEventListeners();
   setupDatGui();
@@ -93,7 +91,8 @@ function addStartSpirals() {
     } else {
       start = getRandomPoint(CANVAS_WIDTH, CANVAS_HEIGHT, padding);
     }
-    addPlacedSpiral(start, vec, null, null, col, width);
+    const spiral = getPlacedSpiral(start, vec, null, null, col, width);
+    spirals.push(spiral);
   }
 }
 
@@ -104,16 +103,28 @@ function update() {
   spirals.forEach((spiral, i) => {
     spiral.previousDirection = spiral.direction;
     if (spiral.splits() && spirals.length < 300) {
-      addPlacedSpiral(
+      const childSpiral = getPlacedSpiral(
         spiral.position,
         spiral.direction.scale(0.8),
         -spiral.rotationFactor,
         spiral.scaleFactor,
         spiral.color,
-        spiral.width
+        spiral.width,
+        undefined,
+        undefined,
+        undefined,
+        spiral.root ?? spiral
       );
+      spirals.push(childSpiral);
+      childSpiral.root.addChild(childSpiral);
     }
+
     spiral.update();
+
+    if (spiral.dead && !spiral.hasReplacement && spiral.root === null) {
+      addStartSpirals();
+      spiral.hasReplacement = true;
+    }
   });
   window.requestAnimationFrame(update);
 }
@@ -137,7 +148,7 @@ function toggle() {
   }
 }
 
-function addPlacedSpiral(
+function getPlacedSpiral(
   pos,
   dir,
   rot,
@@ -146,9 +157,10 @@ function addPlacedSpiral(
   width,
   stayOnCurve,
   splitRatio,
-  flowers
+  flowers,
+  root
 ) {
-  let preset = {
+  let spiralOptions = {
     rotationFactor: rot || configuration.rotationFactor,
     scaleFactor: scale || configuration.scaleFactor,
     color: color || configuration.color,
@@ -156,15 +168,17 @@ function addPlacedSpiral(
     stayOnCurve: stayOnCurve || configuration.stayOnCurve,
     splitRatio: splitRatio || configuration.splitRatio,
     flowers: flowers || configuration.flowers,
+    root: root || null,
   };
-  spirals.push(new Spiral(ctx, pos, dir, preset));
+  const spiral = new Spiral(ctx, pos, dir, spiralOptions);
+  return spiral;
 }
 
 function setupDatGui() {
   let obj = {
     reset: reset,
     toggle: toggle,
-    preset: currentMode,
+    preset: 'FINE_SPIRAL',
   };
 
   let presets = ['FINE_SPIRAL', 'SPIRAL', 'MULTI_SPIRAL', 'ROOT', 'FEATHER'];
@@ -194,15 +208,16 @@ function setupDatGui() {
   gui.add(obj, 'toggle').name('[P] Pause/Play');
 
   presetController.onChange((value) => {
-    configuration.scaleFactor = PRESETS[value].scaleFactor;
-    configuration.rotationFactor = PRESETS[value].rotationFactor;
-    configuration.color = PRESETS[value].color;
-    configuration.width = PRESETS[value].width;
-    configuration.stayOnCurve = PRESETS[value].stayOnCurve;
-    configuration.splitRatio = PRESETS[value].splitRatio;
-    configuration.centered = PRESETS[value].centered;
-    configuration.count = PRESETS[value].count;
-    configuration.flowers = PRESETS[value].flowers;
+    const preset = PRESETS[value];
+    configuration.scaleFactor = preset.scaleFactor;
+    configuration.rotationFactor = preset.rotationFactor;
+    configuration.color = preset.color;
+    configuration.width = preset.width;
+    configuration.stayOnCurve = preset.stayOnCurve;
+    configuration.splitRatio = preset.splitRatio;
+    configuration.centered = preset.centered;
+    configuration.count = preset.count;
+    configuration.flowers = preset.flowers;
 
     reset();
   });
