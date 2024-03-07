@@ -9,6 +9,7 @@ export const PRESETS = {
     centered: true,
     count: 1,
     flowers: false,
+    revive: true,
   },
   SPIRAL: {
     rotationFactor: 0.05,
@@ -20,6 +21,7 @@ export const PRESETS = {
     centered: true,
     count: 1,
     flowers: false,
+    revive: true,
   },
   MULTI_SPIRAL: {
     rotationFactor: 0.158,
@@ -31,6 +33,7 @@ export const PRESETS = {
     centered: false,
     count: 42,
     flowers: false,
+    revive: false,
   },
   ROOT: {
     rotationFactor: 0.08,
@@ -41,7 +44,8 @@ export const PRESETS = {
     splitRatio: 0.989,
     centered: true,
     count: 2,
-    flowers: true,
+    flowers: false,
+    revive: true,
   },
   FEATHER: {
     rotationFactor: 0.02,
@@ -53,5 +57,6 @@ export const PRESETS = {
     centered: true,
     count: 1,
     flowers: false,
+    revive: true,
   },
 };

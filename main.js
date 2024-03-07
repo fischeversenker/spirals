@@ -14,17 +14,21 @@ let CANVAS_WIDTH = 500;
 let CANVAS_HEIGHT = 500;
 const COLORS = [];
 
-const configuration = {
-  rotationFactor: 0.05,
-  scaleFactor: 0.99,
-  color: '#ffffff',
-  width: 2,
-  stayOnCurve: 0.995,
-  splitRatio: 0.987,
-  centered: true,
-  count: 1,
-  flowers: false,
-};
+const storedConfiguration = localStorage.getItem('configuration');
+const configuration = storedConfiguration
+  ? JSON.parse(storedConfiguration)
+  : {
+      rotationFactor: 0.05,
+      scaleFactor: 0.99,
+      color: '#ffffff',
+      width: 2,
+      stayOnCurve: 0.995,
+      splitRatio: 0.987,
+      centered: true,
+      count: 1,
+      revive: true,
+      flowers: false,
+    };
 
 function init() {
   CANVAS_WIDTH = window.innerWidth;
@@ -77,12 +81,12 @@ function reset() {
   addStartSpirals();
 }
 
-function addStartSpirals() {
+function addStartSpirals(count = configuration.count) {
   let vec;
   let col;
   let width;
   let start;
-  for (let i = 0; i < configuration.count; i++) {
+  for (let i = 0; i < count; i++) {
     vec = getRandomVector(20);
     col = COLORS[Math.floor(Math.random() * COLORS.length)];
     width = Math.max(4, Math.ceil(Math.random() * configuration.width));
@@ -120,8 +124,13 @@ function update() {
 
     spiral.update();
 
-    if (spiral.dead && !spiral.hasReplacement && spiral.root === null) {
-      addStartSpirals();
+    if (
+      configuration.revive &&
+      spiral.dead &&
+      !spiral.hasReplacement &&
+      spiral.root === null
+    ) {
+      addStartSpirals(1);
       spiral.hasReplacement = true;
     }
   });
@@ -135,6 +144,9 @@ function addEventListeners() {
     }
     if (ev.key === 'p') {
       toggle();
+    }
+    if (ev.key === 'c') {
+      clear();
     }
   });
   window.addEventListener('resize', adjustCanvasSize);
@@ -177,36 +189,39 @@ function setupDatGui() {
   let obj = {
     reset: reset,
     toggle: toggle,
-    preset: 'FINE_SPIRAL',
+    clear: clear,
+    loadPreset: null,
   };
 
   let presets = ['FINE_SPIRAL', 'SPIRAL', 'MULTI_SPIRAL', 'ROOT', 'FEATHER'];
 
-  let presetController = gui.add(obj, 'preset', presets);
-  let rotationFactorController = gui
-    .add(configuration, 'rotationFactor', 0, 0.3, 0.002)
-    .listen();
-  let scaleFactorController = gui
-    .add(configuration, 'scaleFactor', 0.95, 1.05, 0.001)
-    .listen();
-  let widthController = gui
+  gui.add(configuration, 'rotationFactor', 0, 0.3, 0.002).listen();
+  gui.add(configuration, 'scaleFactor', 0.95, 1.05, 0.001).listen();
+  gui
     .add(configuration, 'width', MIN_WIDTH * 2, MAX_WIDTH)
     .name('maxWidth')
     .listen();
-  let stayOnCurveController = gui
+  gui
     .add(configuration, 'stayOnCurve', 0.8, 1, 0.001)
     .name('prob of not turning')
     .listen();
-  let splitRatioController = gui
+  gui
     .add(configuration, 'splitRatio', 0.7, 1, 0.001)
     .name('prob of not splitting')
     .listen();
-  let centeredController = gui.add(configuration, 'centered').listen();
-  let countController = gui.add(configuration, 'count', 1, 10, 1).listen();
+  gui.add(configuration, 'centered').listen();
+  gui.add(configuration, 'revive').listen();
+  gui.add(configuration, 'count', 1, 10, 1).listen();
+
+  const presetController = gui.add(obj, 'loadPreset', presets);
+  gui.add(obj, 'clear').name('[C] Clear');
   gui.add(obj, 'reset').name('[R] Reset');
   gui.add(obj, 'toggle').name('[P] Pause/Play');
 
   presetController.onChange((value) => {
+    if (!value) {
+      return;
+    }
     const preset = PRESETS[value];
     configuration.scaleFactor = preset.scaleFactor;
     configuration.rotationFactor = preset.rotationFactor;
@@ -216,17 +231,11 @@ function setupDatGui() {
     configuration.splitRatio = preset.splitRatio;
     configuration.centered = preset.centered;
     configuration.count = preset.count;
+    configuration.revive = preset.revive;
     configuration.flowers = preset.flowers;
 
-    reset();
+    localStorage.setItem('configuration', JSON.stringify(configuration));
   });
-  rotationFactorController.onChange(reset);
-  scaleFactorController.onChange(reset);
-  widthController.onChange(reset);
-  stayOnCurveController.onChange(reset);
-  splitRatioController.onChange(reset);
-  centeredController.onChange(reset);
-  countController.onChange(reset);
 }
 
 init();
