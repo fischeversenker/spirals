@@ -101,7 +101,6 @@ function update() {
     return false;
   }
   spirals.forEach((spiral, i) => {
-    spiral.previousDirection = spiral.direction;
     if (spiral.splits() && spirals.length < 300) {
       const childSpiral = getPlacedSpiral(
         spiral.position,

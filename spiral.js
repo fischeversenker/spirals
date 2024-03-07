@@ -11,7 +11,6 @@ export class Spiral {
     this.ctx = ctx;
     this.position = pos;
     this.direction = dir;
-    this.previousDirection = null;
     this.rotationFactor = options.rotationFactor;
     this.scaleFactor = options.scaleFactor;
     this.color = options.color;
