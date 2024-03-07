@@ -57,7 +57,6 @@ function adjustCanvasSize() {
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
   ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-  reset();
 }
 
 function start() {
