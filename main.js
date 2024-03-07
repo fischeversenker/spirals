@@ -22,8 +22,8 @@ const configuration = storedConfiguration
       scaleFactor: 0.99,
       color: '#ffffff',
       width: 2,
-      stayOnCurve: 0.995,
-      splitRatio: 0.987,
+      roundness: 0.995,
+      splitResistance: 0.987,
       centered: true,
       count: 1,
       revive: true,
@@ -104,7 +104,10 @@ function update() {
     return false;
   }
   spirals.forEach((spiral, i) => {
-    if (spiral.splits() && spirals.length < 300) {
+    // if (spiral.root !== null) {
+    //   console.log(spiral.root.children.length, spiral.root.ttl);
+    // }
+    if (spiral.splits() && !spiral.dead) {
       const childSpiral = getPlacedSpiral(
         spiral.position,
         spiral.direction.scale(0.8),
@@ -118,10 +121,15 @@ function update() {
         spiral.root ?? spiral
       );
       spirals.push(childSpiral);
+      spiral.addChild(childSpiral);
       childSpiral.root.addChild(childSpiral);
     }
 
     spiral.update();
+
+    if (spiral.dead && spiral.flowerIsFullSize) {
+      spirals.splice(i, 1);
+    }
 
     if (
       configuration.revive &&
@@ -165,8 +173,8 @@ function getPlacedSpiral(
   scale,
   color,
   width,
-  stayOnCurve,
-  splitRatio,
+  roundness,
+  splitResistance,
   flowers,
   root
 ) {
@@ -175,8 +183,8 @@ function getPlacedSpiral(
     scaleFactor: scale || configuration.scaleFactor,
     color: color || configuration.color,
     width: width || configuration.width,
-    stayOnCurve: stayOnCurve || configuration.stayOnCurve,
-    splitRatio: splitRatio || configuration.splitRatio,
+    roundness: roundness || configuration.roundness,
+    splitResistance: splitResistance || configuration.splitResistance,
     flowers: flowers || configuration.flowers,
     root: root || null,
   };
@@ -200,16 +208,11 @@ function setupDatGui() {
     .add(configuration, 'width', MIN_WIDTH * 2, MAX_WIDTH)
     .name('maxWidth')
     .listen();
-  gui
-    .add(configuration, 'stayOnCurve', 0.8, 1, 0.001)
-    .name('prob of not turning')
-    .listen();
-  gui
-    .add(configuration, 'splitRatio', 0.7, 1, 0.001)
-    .name('prob of not splitting')
-    .listen();
-  gui.add(configuration, 'centered').listen();
-  gui.add(configuration, 'revive').listen();
+  gui.add(configuration, 'roundness', 0.8, 1, 0.001).listen();
+  gui.add(configuration, 'splitResistance', 0.7, 1, 0.001).listen();
+  const flowersController = gui.add(configuration, 'flowers').listen();
+  const centeredController = gui.add(configuration, 'centered').listen();
+  const reviveController = gui.add(configuration, 'revive').listen();
   gui.add(configuration, 'count', 1, 10, 1).listen();
 
   const presetController = gui.add(obj, 'loadPreset', presets);
@@ -226,14 +229,18 @@ function setupDatGui() {
     configuration.rotationFactor = preset.rotationFactor;
     configuration.color = preset.color;
     configuration.width = preset.width;
-    configuration.stayOnCurve = preset.stayOnCurve;
-    configuration.splitRatio = preset.splitRatio;
+    configuration.roundness = preset.roundness;
+    configuration.splitResistance = preset.splitResistance;
     configuration.centered = preset.centered;
     configuration.count = preset.count;
     configuration.revive = preset.revive;
     configuration.flowers = preset.flowers;
 
     localStorage.setItem('configuration', JSON.stringify(configuration));
+
+    flowersController.updateDisplay();
+    centeredController.updateDisplay();
+    reviveController.updateDisplay();
   });
 }
 

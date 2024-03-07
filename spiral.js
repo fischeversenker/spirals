@@ -1,6 +1,6 @@
 import { Vector } from './vector.js';
 
-export const MIN_LENGTH = 0.1;
+export const MIN_LENGTH = 0.2;
 export const MIN_WIDTH = 0.4;
 export const MAX_WIDTH = 10;
 export const FLOWER_DURATION = 400;
@@ -15,8 +15,8 @@ export class Spiral {
     this.scaleFactor = options.scaleFactor;
     this.color = options.color;
     this.width = options.width;
-    this.stayOnCurve = options.stayOnCurve;
-    this.splitRatio = options.splitRatio;
+    this.roundness = options.roundness;
+    this.splitResistance = options.splitResistance;
     this.flowers = options.flowers;
     this.root = options.root;
     this.flowerIsFullSize = false;
@@ -26,14 +26,18 @@ export class Spiral {
     this.dead = false;
     this.hasReplacement = false;
     this.children = [];
+    this.ttl = Math.random() * 400 + 1000;
   }
 
   update() {
     if (this.dead && this.flowerIsFullSize) {
       return false;
     }
-    if (this.direction.length() < MIN_LENGTH) {
-      if (this.shouldFlower) {
+    if (
+      this.direction.length() < MIN_LENGTH ||
+      (this.root?.children.length > this.root?.ttl ?? false)
+    ) {
+      if (this.flowers && this.shouldFlower) {
         if (this.flowerStarted === 0) {
           this.flowerStarted = Date.now();
         }
@@ -88,10 +92,10 @@ export class Spiral {
   }
 
   splits() {
-    return Math.random() > this.splitRatio - this.direction.length() / 100;
+    return Math.random() > this.splitResistance - this.direction.length() / 100;
   }
 
   turns() {
-    return Math.random() > this.stayOnCurve - this.direction.length() / 100;
+    return Math.random() > this.roundness - this.direction.length() / 100;
   }
 }
