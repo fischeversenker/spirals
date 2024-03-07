@@ -104,41 +104,20 @@ function update() {
     return false;
   }
   spirals.forEach((spiral, i) => {
-    // if (spiral.root !== null) {
-    //   console.log(spiral.root.children.length, spiral.root.ttl);
-    // }
-    if (spiral.splits() && !spiral.dead) {
-      const childSpiral = getPlacedSpiral(
-        spiral.position,
-        spiral.direction.scale(0.8),
-        -spiral.rotationFactor,
-        spiral.scaleFactor,
-        spiral.color,
-        spiral.width,
-        undefined,
-        undefined,
-        undefined,
-        spiral.root ?? spiral
-      );
-      spirals.push(childSpiral);
-      spiral.addChild(childSpiral);
-      childSpiral.root.addChild(childSpiral);
-    }
-
     spiral.update();
-
-    if (spiral.dead && spiral.flowerIsFullSize) {
-      spirals.splice(i, 1);
-    }
 
     if (
       configuration.revive &&
-      spiral.dead &&
+      spiral.isDead() &&
       !spiral.hasReplacement &&
       spiral.root === null
     ) {
       addStartSpirals(1);
       spiral.hasReplacement = true;
+    }
+
+    if (spiral.isDead() && spiral.flowerIsFullSize) {
+      spirals.splice(i, 1);
     }
   });
   window.requestAnimationFrame(update);
@@ -202,18 +181,43 @@ function setupDatGui() {
 
   let presets = ['FINE_SPIRAL', 'SPIRAL', 'MULTI_SPIRAL', 'ROOT', 'FEATHER'];
 
-  gui.add(configuration, 'rotationFactor', 0, 0.3, 0.002).listen();
-  gui.add(configuration, 'scaleFactor', 0.95, 1.05, 0.001).listen();
+  gui
+    .add(configuration, 'rotationFactor', 0, 0.3, 0.002)
+    .listen()
+    .onChange(storeConfiguration);
+  gui
+    .add(configuration, 'scaleFactor', 0.95, 1.05, 0.001)
+    .listen()
+    .onChange(storeConfiguration);
   gui
     .add(configuration, 'width', MIN_WIDTH * 2, MAX_WIDTH)
     .name('maxWidth')
-    .listen();
-  gui.add(configuration, 'roundness', 0.8, 1, 0.001).listen();
-  gui.add(configuration, 'splitResistance', 0.7, 1, 0.001).listen();
-  const flowersController = gui.add(configuration, 'flowers').listen();
-  const centeredController = gui.add(configuration, 'centered').listen();
-  const reviveController = gui.add(configuration, 'revive').listen();
-  gui.add(configuration, 'count', 1, 10, 1).listen();
+    .listen()
+    .onChange(storeConfiguration);
+  gui
+    .add(configuration, 'roundness', 0.8, 1, 0.001)
+    .listen()
+    .onChange(storeConfiguration);
+  gui
+    .add(configuration, 'splitResistance', 0.7, 1, 0.001)
+    .listen()
+    .onChange(storeConfiguration);
+  const flowersController = gui
+    .add(configuration, 'flowers')
+    .listen()
+    .onChange(storeConfiguration);
+  const centeredController = gui
+    .add(configuration, 'centered')
+    .listen()
+    .onChange(storeConfiguration);
+  const reviveController = gui
+    .add(configuration, 'revive')
+    .listen()
+    .onChange(storeConfiguration);
+  gui
+    .add(configuration, 'count', 1, 10, 1)
+    .listen()
+    .onChange(storeConfiguration);
 
   const presetController = gui.add(obj, 'loadPreset', presets);
   gui.add(obj, 'clear').name('[C] Clear');
@@ -236,12 +240,16 @@ function setupDatGui() {
     configuration.revive = preset.revive;
     configuration.flowers = preset.flowers;
 
-    localStorage.setItem('configuration', JSON.stringify(configuration));
+    storeConfiguration();
 
     flowersController.updateDisplay();
     centeredController.updateDisplay();
     reviveController.updateDisplay();
   });
+}
+
+function storeConfiguration() {
+  localStorage.setItem('configuration', JSON.stringify(configuration));
 }
 
 init();
