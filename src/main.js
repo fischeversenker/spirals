@@ -36,6 +36,7 @@ function init() {
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
   ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+
   clear();
 
   // add "random" colors
@@ -51,24 +52,25 @@ function init() {
 }
 
 function adjustCanvasSize() {
-  ctx.translate(CANVAS_WIDTH / -2, CANVAS_HEIGHT / -2);
   CANVAS_WIDTH = window.innerWidth;
   CANVAS_HEIGHT = window.innerHeight;
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
-  ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 }
 
 function start() {
   running = true;
-  update();
+  render();
 }
 
 function clear() {
-  ctx.translate(CANVAS_WIDTH / -2, CANVAS_HEIGHT / -2);
   ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+  ctx.fillRect(
+    CANVAS_WIDTH / -2,
+    CANVAS_HEIGHT / -2,
+    CANVAS_WIDTH,
+    CANVAS_HEIGHT
+  );
 }
 
 function reset() {
@@ -99,12 +101,16 @@ function addStartSpirals(count = configuration.count) {
   }
 }
 
-function update() {
+function render() {
   if (!running) {
     return false;
   }
+
+  clear();
+
   spirals.forEach((spiral, i) => {
     spiral.update();
+    spiral.render();
 
     if (
       configuration.revive &&
@@ -120,7 +126,7 @@ function update() {
       spirals.splice(i, 1);
     }
   });
-  window.requestAnimationFrame(update);
+  window.requestAnimationFrame(render);
 }
 
 function addEventListeners() {
@@ -252,4 +258,6 @@ function storeConfiguration() {
   localStorage.setItem('configuration', JSON.stringify(configuration));
 }
 
-init();
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+});

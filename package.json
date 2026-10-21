@@ -1,0 +1,15 @@
+{
+  "name": "spirals",
+  "version": "1.0.0",
+  "description": "Start with `npx live-server`",
+  "main": "main.js",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "scripts": {
+    "start": "npx live-server src"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

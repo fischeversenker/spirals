@@ -1,4 +1,4 @@
-import { Vector } from './vector.js';
+import { Vector } from "./vector.js";
 
 export const MIN_LENGTH = 0.2;
 export const MIN_WIDTH = 0.4;
@@ -9,7 +9,7 @@ export class Spiral {
   constructor(ctx, pos, dir, options) {
     options = options || {};
     this.ctx = ctx;
-    this.position = pos;
+    this.origin = pos;
     this.direction = dir;
     this.rotationFactor = options.rotationFactor;
     this.scaleFactor = options.scaleFactor;
@@ -20,13 +20,14 @@ export class Spiral {
     this.flowers = options.flowers;
     this.root = options.root;
     this.flowerIsFullSize = false;
+    this.initialFlowerRadius = Math.random() * 4;
     this.flowerRadius = Math.random() * 4;
-    this.shouldFlower = Math.random() > 0.1;
+    this.shouldFlower = this.flowers && Math.random() > 0.1;
     this.flowerStarted = 0;
     this.hasReplacement = false;
     this.children = [];
-    this.ttl = Math.random() * 400 + 1000;
-    this.steps = 0;
+    this.ttl = Math.random() * 10 + 400;
+    this.steps = [this.origin];
   }
 
   update() {
@@ -35,16 +36,23 @@ export class Spiral {
         return;
       }
 
-      if (this.flowers && this.shouldFlower) {
+      if (this.shouldFlower) {
+        const now = Date.now();
         if (this.flowerStarted === 0) {
-          this.flowerStarted = Date.now();
-        }
-        if (!this.flowerIsFullSize) {
-          this.updateFlower();
+          this.flowerStarted = now;
+        } else {
+          this.flowerRadius =
+            ((now - this.flowerStarted) / FLOWER_DURATION) *
+            this.initialFlowerRadius;
+
+          if (now > this.flowerStarted + FLOWER_DURATION) {
+            this.flowerIsFullSize = true;
+          }
         }
       } else {
         this.flowerIsFullSize = true;
       }
+
       return;
     }
 
@@ -61,36 +69,66 @@ export class Spiral {
       };
       const childSpiral = new Spiral(
         this.ctx,
-        this.position,
+        this.steps.at(-1) ?? this.origin,
         this.direction.scale(0.8),
-        options
+        options,
       );
       this.children.push(childSpiral);
     }
 
-    this.ctx.strokeStyle = this.color;
-    this.ctx.lineWidth = Math.max(
-      (this.width * this.direction.length()) / 8,
-      MIN_WIDTH
-    );
-    let x = this.position.x + this.direction.x;
-    let y = this.position.y + this.direction.y;
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.position.x, this.position.y);
-    this.ctx.lineTo(x, y);
-    this.ctx.stroke();
-    this.steps++;
+    let x = this.steps.at(-1).x + this.direction.x;
+    let y = this.steps.at(-1).y + this.direction.y;
+    this.steps.push(new Vector(x, y));
 
     if (this.turns()) {
       this.rotationFactor = -this.rotationFactor;
     }
 
-    this.position = new Vector(x, y);
     this.direction = this.direction
       .rotate(this.rotationFactor)
       .scale(this.scaleFactor);
 
     this.children.forEach((child) => child.update());
+  }
+
+  render() {
+    this.ctx.strokeStyle = this.color;
+    this.ctx.fillStyle = this.color;
+
+    for (let index = 1; index < this.steps.length; index++) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.steps.at(index - 1).x, this.steps.at(index - 1).y);
+      const step = this.steps[index];
+      const stepLength = this.steps
+        .at(index - 1)
+        .sub(step)
+        .length();
+      const lineWidth = Math.max((this.width * stepLength) / 6, MIN_WIDTH);
+      this.ctx.lineWidth = lineWidth;
+      this.ctx.lineTo(step.x, step.y);
+      this.ctx.stroke();
+    }
+
+    // draw flower
+    if (this.shouldFlower && this.flowerStarted && !this.flowerIsFullSize) {
+      console.log(
+        "drawing flower at x with radius x",
+        this.steps.at(-1),
+        this.flowerRadius,
+      );
+
+      this.ctx.beginPath();
+      this.ctx.arc(
+        this.steps.at(-1).x,
+        this.steps.at(-1).y,
+        this.flowerRadius,
+        0,
+        360,
+      );
+      this.ctx.fill();
+    }
+
+    this.children.forEach((child) => child.render());
   }
 
   isDead() {
@@ -103,28 +141,15 @@ export class Spiral {
     return (
       this.direction.length() < MIN_LENGTH ||
       (this.root?.getChildCount() > this.root?.ttl ?? false) ||
-      this.steps > 100
+      this.steps.length > 100
     );
   }
 
   getChildCount() {
     return this.children.reduce(
       (acc, child) => acc + child.getChildCount(),
-      this.children.length
+      this.children.length,
     );
-  }
-
-  updateFlower() {
-    const radius =
-      ((Date.now() - this.flowerStarted) / FLOWER_DURATION) * this.flowerRadius;
-    this.ctx.fillStyle = this.color; // 'rgba(150, 150, 255, 0.5)';
-    this.ctx.beginPath();
-    this.ctx.arc(this.position.x, this.position.y, radius, 0, 360);
-    this.ctx.fill();
-
-    if (Date.now() > this.flowerStarted + FLOWER_DURATION) {
-      this.flowerIsFullSize = true;
-    }
   }
 
   addChild(spiral) {
